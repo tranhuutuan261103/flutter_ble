@@ -1,16 +1,18 @@
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
-
 import 'package:flutter/material.dart';
+import 'package:audioplayers/audioplayers.dart';
+
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
 class BluetoothControllerScreen extends StatefulWidget {
   final BluetoothDevice device;
   static const String myService = '0000ffe0-0000-1000-8000-00805f9b34fb';
   static const String myCharacteristic = '0000ffe1-0000-1000-8000-00805f9b34fb';
+  final player = AudioPlayer();
 
-  const BluetoothControllerScreen({super.key, required this.device});
+  BluetoothControllerScreen({super.key, required this.device});
 
   @override
   State<BluetoothControllerScreen> createState() =>
@@ -85,6 +87,10 @@ class _BluetoothControllerScreenState extends State<BluetoothControllerScreen> {
     }
   }
 
+  void playSound() async {
+    await widget.player.play(AssetSource('sounds/low_hip.wav'));
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -94,7 +100,7 @@ class _BluetoothControllerScreenState extends State<BluetoothControllerScreen> {
       body: Column(
         children: [
           ElevatedButton(
-            onPressed: getServices,
+            onPressed: playSound,
             child: const Text('Get Services'),
           ),
           _characteristic != null

@@ -128,15 +128,20 @@ class _AppState extends State<StatefulWidget> {
                       : const SizedBox(),
                 ],
               ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: _scanResults
-                    .map(
-                      (r) => Text(
-                        '${r.device.remoteId}: "${r.advertisementData.advName}"',
-                      ),
-                    )
-                    .toList(),
+              Expanded(
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.vertical,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: _scanResults
+                        .map(
+                          (r) => Text(
+                            '${r.device.remoteId}: "${r.advertisementData.advName}"',
+                          ),
+                        )
+                        .toList(),
+                  ),
+                ),
               ),
             ],
           ),
