@@ -24,6 +24,8 @@ class _BluetoothControllerScreenState extends State<BluetoothControllerScreen> {
   bool isPlayingAudio = false;
   List<String> messages = [];
 
+  String latestData = '';
+
   final TextEditingController _controller = TextEditingController();
 
   @override
@@ -57,6 +59,7 @@ class _BluetoothControllerScreenState extends State<BluetoothControllerScreen> {
             String receivedData = utf8.decode(value);
             setState(() {
               messages.add('Jetson Nano: $receivedData');
+              latestData = receivedData;
             });
             receivedDataHandler(receivedData);
           });
@@ -81,17 +84,26 @@ class _BluetoothControllerScreenState extends State<BluetoothControllerScreen> {
   }
 
   void receivedDataHandler(String data) {
-    if (data == '1' && !isPlayingAudio) {
-      playSound();
+    List<String> errors = [
+      'elbow_to_after',
+      'elbow_to_front',
+      'high_hip',
+      'low_hip_elbow_to_after',
+      'low_hip_elbow_to_front',
+      'low_hip',
+      'wrong_exercise'
+    ];
+    if (errors.contains(data) && !isPlayingAudio) {
+      playSound(data);
     }
   }
 
-  void playSound() async {
+  void playSound(String path) async {
     setState(() {
       isPlayingAudio = true;
     });
     try {
-      await widget.player.play(AssetSource('sounds/low_hip.wav'));
+      await widget.player.play(AssetSource('sounds/$path.wav'));
     } finally {
       setState(() {
         isPlayingAudio = false;
@@ -132,23 +144,63 @@ class _BluetoothControllerScreenState extends State<BluetoothControllerScreen> {
                   ],
                 )
               : const SizedBox(),
-          Expanded(
-            child: ListView.builder(
-              itemCount: messages.length,
-              itemBuilder: (context, index) {
-                return ListTile(
-                  title: Text(
-                    messages[index],
-                    style: TextStyle(
-                      color: messages[index].contains('My phone')
-                          ? Colors.blue
-                          : Colors.green,
-                    ),
-                  ),
-                );
-              },
-            ),
+          // Expanded(
+          //   child: ListView.builder(
+          //     itemCount: messages.length,
+          //     itemBuilder: (context, index) {
+          //       return ListTile(
+          //         title: Text(
+          //           messages[index],
+          //           style: TextStyle(
+          //             color: messages[index].contains('My phone')
+          //                 ? Colors.blue
+          //                 : Colors.green,
+          //           ),
+          //         ),
+          //       );
+          //     },
+          //   ),
+          // ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(latestData,
+                  style: const TextStyle(fontSize: 20, color: Colors.red),
+                  textAlign: TextAlign.center),
+            ],
           ),
+          _characteristic != null
+              ? Expanded(
+                  child: Center(
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 40),
+                      const Text(
+                        "Exercise Controller",
+                        style: TextStyle(fontSize: 20),
+                      ),
+                      MaterialButton(
+                        onPressed: () {
+                          sendData("r");
+                        },
+                        child: const Text(
+                          "Start",
+                          style: TextStyle(color: Colors.green),
+                        ),
+                      ),
+                      MaterialButton(
+                        onPressed: () {
+                          sendData("s");
+                        },
+                        child: const Text(
+                          "Stop",
+                          style: TextStyle(color: Colors.red),
+                        ),
+                      ),
+                    ],
+                  ),
+                ))
+              : const SizedBox(),
         ],
       ),
     );
