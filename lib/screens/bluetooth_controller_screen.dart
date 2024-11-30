@@ -21,7 +21,7 @@ class BluetoothControllerScreen extends StatefulWidget {
 
 class _BluetoothControllerScreenState extends State<BluetoothControllerScreen> {
   BluetoothCharacteristic? _characteristic;
-
+  bool isPlayingAudio = false;
   List<String> messages = [];
 
   final TextEditingController _controller = TextEditingController();
@@ -58,6 +58,7 @@ class _BluetoothControllerScreenState extends State<BluetoothControllerScreen> {
             setState(() {
               messages.add('Jetson Nano: $receivedData');
             });
+            receivedDataHandler(receivedData);
           });
         }
       }
@@ -66,20 +67,12 @@ class _BluetoothControllerScreenState extends State<BluetoothControllerScreen> {
 
   void sendData(String data) async {
     try {
-      if (_characteristic != null) {
-        if (_characteristic!.properties.write) {
-          await _characteristic!.write(data.codeUnits, withoutResponse: true);
-          setState(() {
-            messages.add('My phone: $data');
-          });
-        }
+      if (_characteristic != null && _characteristic!.properties.write) {
+        await _characteristic!.write(data.codeUnits, withoutResponse: true);
+        setState(() {
+          messages.add('My phone: $data');
+        });
       }
-
-      // List<int> value = await _characteristic!.read();
-      // String decodedValue = utf8.decode(value); // Convert List<int> to String
-      // setState(() {
-      //   messages.add('Jetson nano: $decodedValue');
-      // });
     } catch (e) {
       if (kDebugMode) {
         print('Error sending data: $e');
@@ -87,8 +80,23 @@ class _BluetoothControllerScreenState extends State<BluetoothControllerScreen> {
     }
   }
 
+  void receivedDataHandler(String data) {
+    if (data == '1' && !isPlayingAudio) {
+      playSound();
+    }
+  }
+
   void playSound() async {
-    await widget.player.play(AssetSource('sounds/low_hip.wav'));
+    setState(() {
+      isPlayingAudio = true;
+    });
+    try {
+      await widget.player.play(AssetSource('sounds/low_hip.wav'));
+    } finally {
+      setState(() {
+        isPlayingAudio = false;
+      });
+    }
   }
 
   @override
@@ -100,7 +108,7 @@ class _BluetoothControllerScreenState extends State<BluetoothControllerScreen> {
       body: Column(
         children: [
           ElevatedButton(
-            onPressed: playSound,
+            onPressed: getServices, // Get services
             child: const Text('Get Services'),
           ),
           _characteristic != null
