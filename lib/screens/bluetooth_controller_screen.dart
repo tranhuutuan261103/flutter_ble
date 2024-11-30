@@ -36,7 +36,6 @@ class _BluetoothControllerScreenState extends State<BluetoothControllerScreen> {
   }
 
   void getServices() async {
-    // Connect to the device
     var connectionState = await widget.device.connectionState.first;
     if (connectionState != BluetoothConnectionState.connected) {
       await widget.device.connect();
@@ -49,7 +48,14 @@ class _BluetoothControllerScreenState extends State<BluetoothControllerScreen> {
             service.uuid.str128 == BluetoothControllerScreen.myService) {
           setState(() {
             _characteristic = characteristic;
-            messages = [];
+          });
+
+          _characteristic!.setNotifyValue(true);
+          _characteristic!.lastValueStream.listen((value) {
+            String receivedData = utf8.decode(value);
+            setState(() {
+              messages.add('Jetson Nano: $receivedData');
+            });
           });
         }
       }
@@ -57,28 +63,27 @@ class _BluetoothControllerScreenState extends State<BluetoothControllerScreen> {
   }
 
   void sendData(String data) async {
-  try {
-    if (_characteristic != null) {
-      if (_characteristic!.properties.write) {
-        await _characteristic!.write(data.codeUnits, withoutResponse: true);
-        setState(() {
-          messages.add('My phone: $data');
-        });
+    try {
+      if (_characteristic != null) {
+        if (_characteristic!.properties.write) {
+          await _characteristic!.write(data.codeUnits, withoutResponse: true);
+          setState(() {
+            messages.add('My phone: $data');
+          });
+        }
+      }
+
+      // List<int> value = await _characteristic!.read();
+      // String decodedValue = utf8.decode(value); // Convert List<int> to String
+      // setState(() {
+      //   messages.add('Jetson nano: $decodedValue');
+      // });
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error sending data: $e');
       }
     }
-
-    List<int> value = await _characteristic!.read();
-    String decodedValue = utf8.decode(value);  // Convert List<int> to String
-    setState(() {
-      messages.add('Jetson nano: $decodedValue');
-    });
-  } catch (e) {
-    if (kDebugMode) {
-      print('Error sending data: $e');
-    }
   }
-}
-
 
   @override
   Widget build(BuildContext context) {
@@ -94,34 +99,36 @@ class _BluetoothControllerScreenState extends State<BluetoothControllerScreen> {
           ),
           _characteristic != null
               ? Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _controller,
-                      decoration: const InputDecoration(
-                        hintText: 'Enter data to send',
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _controller,
+                        decoration: const InputDecoration(
+                          hintText: 'Enter data to send',
+                        ),
                       ),
                     ),
-                  ),
-                  ElevatedButton(
+                    ElevatedButton(
                       onPressed: () {
                         sendData(_controller.text);
                         _controller.clear();
                       },
                       child: const Text('Send Data'),
                     ),
-                ],
-              )
+                  ],
+                )
               : const SizedBox(),
-
           Expanded(
             child: ListView.builder(
               itemCount: messages.length,
               itemBuilder: (context, index) {
                 return ListTile(
-                  title: Text(messages[index], 
+                  title: Text(
+                    messages[index],
                     style: TextStyle(
-                      color: messages[index].contains('My phone') ? Colors.blue : Colors.green,
+                      color: messages[index].contains('My phone')
+                          ? Colors.blue
+                          : Colors.green,
                     ),
                   ),
                 );
