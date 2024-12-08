@@ -6,20 +6,20 @@ import 'package:audioplayers/audioplayers.dart';
 
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
-class BluetoothControllerScreen extends StatefulWidget {
+class WifiConfigScreen extends StatefulWidget {
   final BluetoothDevice device;
   static const String myService = '0000ffe0-0000-1000-8000-00805f9b34fb';
   static const String myCharacteristic = '0000ffe1-0000-1000-8000-00805f9b34fb';
   final player = AudioPlayer();
 
-  BluetoothControllerScreen({super.key, required this.device});
+  WifiConfigScreen({super.key, required this.device});
 
   @override
-  State<BluetoothControllerScreen> createState() =>
-      _BluetoothControllerScreenState();
+  State<WifiConfigScreen> createState() =>
+      _WifiConfigScreenState();
 }
 
-class _BluetoothControllerScreenState extends State<BluetoothControllerScreen> {
+class _WifiConfigScreenState extends State<WifiConfigScreen> {
   BluetoothCharacteristic? _characteristic;
   bool isPlayingAudio = false;
   List<String> messages = [];
@@ -48,8 +48,8 @@ class _BluetoothControllerScreenState extends State<BluetoothControllerScreen> {
     for (var service in services) {
       for (var characteristic in service.characteristics) {
         if (characteristic.uuid.str128 ==
-                BluetoothControllerScreen.myCharacteristic &&
-            service.uuid.str128 == BluetoothControllerScreen.myService) {
+                WifiConfigScreen.myCharacteristic &&
+            service.uuid.str128 == WifiConfigScreen.myService) {
           setState(() {
             _characteristic = characteristic;
           });
@@ -181,7 +181,7 @@ class _BluetoothControllerScreenState extends State<BluetoothControllerScreen> {
                       ),
                       MaterialButton(
                         onPressed: () {
-                          sendData("r");
+                          sendData("list_wifi");
                         },
                         child: const Text(
                           "Start",
