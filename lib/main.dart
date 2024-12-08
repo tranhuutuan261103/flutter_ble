@@ -10,6 +10,8 @@ import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 // import 'screens/bluetooth_off_screen.dart';
 // import 'screens/scan_screen.dart';
 import 'screens/bluetooth_controller_screen.dart';
+import 'screens/video_stream_screen.dart';
+import 'screens/wifi_config_screen.dart';
 
 void main() {
   FlutterBluePlus.setLogLevel(LogLevel.verbose, color: true);
@@ -118,6 +120,41 @@ class _AppState extends State<StatefulWidget> {
                               MaterialPageRoute(
                                 builder: (context) {
                                   return BluetoothControllerScreen(
+                                      device: myDevice!);
+                                },
+                              ),
+                            );
+                          },
+                          child: const Text('Connect to BT05'),
+                        )
+                      : const SizedBox(),
+                ],
+              ),
+              Row(
+                children: [
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) {
+                            return VideoStream();
+                          },
+                        ),
+                      );
+                    },
+                    child: const Text('Stream Video'),
+                  ),
+                  myDevice != null
+                      ? ElevatedButton(
+                          onPressed: () {
+                            if (myDevice == null) {
+                              return;
+                            }
+                            FlutterBluePlus.stopScan();
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) {
+                                  return WifiConfigScreen(
                                       device: myDevice!);
                                 },
                               ),
